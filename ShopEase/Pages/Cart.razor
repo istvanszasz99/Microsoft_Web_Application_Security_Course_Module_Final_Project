@@ -24,17 +24,36 @@ else
     private List<Product> CartProducts = new();
     private decimal Total => CartProducts.Sum(p => p.Price);
 
-    public void AddProduct(Product product)
+    protected override async Task OnInitializedAsync()
     {
-        CartProducts.Add(product);
+        var json = await JS.InvokeAsync<string>("localStorage.getItem", "cart");
+        if (!string.IsNullOrEmpty(json))
+        {
+            CartProducts = System.Text.Json.JsonSerializer.Deserialize<List<Product>>(json) ?? new();
+        }
     }
 
-    private void RemoveFromCart(int productId)
+    public async void AddProduct(Product product)
+    {
+        CartProducts.Add(product);
+        await SaveCartAsync();
+    }
+
+    private async void RemoveFromCart(int productId)
     {
         var product = CartProducts.FirstOrDefault(p => p.ProductID == productId);
         if (product != null)
         {
             CartProducts.Remove(product);
+            await SaveCartAsync();
         }
     }
+
+    private async Task SaveCartAsync()
+    {
+        var json = System.Text.Json.JsonSerializer.Serialize(CartProducts);
+        await JS.InvokeVoidAsync("localStorage.setItem", "cart", json);
+    }
 }
+
+@inject IJSRuntime JS
