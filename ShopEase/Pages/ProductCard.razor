@@ -1,0 +1,23 @@
+@page "/productcard"
+@using ShopEase
+@using Microsoft.AspNetCore.Authorization
+
+<div class="product-card">
+    <h3>@Product.Name</h3>
+    <p>Price: $@Product.Price</p>
+    <p>Category: @Product.Category</p>
+    <button @onclick="AddToCart">Add to Cart</button>
+</div>
+
+@code {
+    [Parameter]
+    public required Product Product { get; set; }
+
+    [Parameter]
+    public EventCallback<Product> OnAddToCart { get; set; }
+
+    private void AddToCart()
+    {
+        OnAddToCart.InvokeAsync(Product);
+    }
+}
